@@ -190,6 +190,115 @@ Notice that **no images are read at this stage**.
 Only the configuration is stored.
 
 ---
+train_datagen = ImageDataGenerator(
+    rescale=1./255,
+    validation_split=0.2,
+    rotation_range=20,
+    horizontal_flip=True,
+    zoom_range=0.2
+)
+## Common Data Augmentation Techniques
+
+Data augmentation artificially increases the diversity of the training dataset by applying random transformations to images **during training**. These transformations help the model generalize better and reduce overfitting.
+
+> **Note:** Image augmentation is applied **only to the training dataset**. Validation and test images should remain unchanged to ensure unbiased model evaluation.
+
+---
+
+### 1. `rotation_range`
+
+```python
+rotation_range=20
+```
+
+Randomly rotates an image within the specified range.
+
+For `rotation_range=20`, the generator randomly selects an angle between **-20° and +20°** for every image.
+
+**Purpose**
+
+- Makes the model robust to tilted images.
+- Simulates different camera angles.
+- Improves generalization.
+
+---
+
+### 2. `horizontal_flip`
+
+```python
+horizontal_flip=True
+```
+
+Randomly flips images from left to right.
+
+**Purpose**
+
+- Helps the model learn that an object remains the same even when viewed from the opposite direction.
+- Commonly used for animals, vehicles, flowers, and many natural images.
+
+**Not Recommended For**
+
+- Text recognition
+- Handwritten digits
+- Road signs
+- Medical images (depends on the application)
+
+---
+
+### 3. `zoom_range`
+
+```python
+zoom_range=0.2
+```
+
+Randomly zooms images in or out.
+
+For `zoom_range=0.2`, the generator applies a random zoom within approximately **±20%** of the original size.
+
+**Purpose**
+
+- Simulates objects appearing at different distances.
+- Makes the model robust to scale variations.
+- Helps detect both near and far objects.
+
+---
+
+## Online Data Augmentation
+
+ImageDataGenerator performs **online data augmentation**.
+
+This means augmented images are generated **on-the-fly** while training instead of being permanently saved to disk.
+
+```text
+Original Image
+        │
+        ▼
+ImageDataGenerator
+        │
+        ▼
+Random Augmentation
+(Rotate, Flip, Zoom, etc.)
+        │
+        ▼
+Temporary Image
+        │
+        ▼
+CNN
+```
+
+The original dataset remains unchanged.
+
+Each training epoch may generate a different augmented version of the same image.
+
+---
+
+## Benefits of Data Augmentation
+
+- Increases the effective size of the training dataset.
+- Reduces overfitting.
+- Improves model generalization.
+- Makes the model robust to real-world image variations.
+- Eliminates the need to store augmented images on disk.
 
 # When Are Images Actually Loaded?
 
@@ -199,9 +308,12 @@ Example
 
 ```python
 train_generator = train_datagen.flow_from_directory(
-    "train",
-    target_size=(150,150),
-    batch_size=32
+    DATASET_PATH,
+    target_size=(224, 224),
+    batch_size=32,
+    class_mode="binary",
+    subset="training",
+    shuffle=True
 )
 ```
 
