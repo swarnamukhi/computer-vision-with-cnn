@@ -261,6 +261,251 @@ Before training a CNN, engineers inspect image metadata and pixel values.
 Pillow provides a simple and efficient interface for reading this information.
 
 ---
+## How Does Pillow Read Images?
+
+One common misconception is that **Pillow converts images into NumPy arrays**.
+
+This is **not true**.
+
+Pillow and NumPy have different responsibilities.
+
+---
+
+## Step 1: Image File
+
+Suppose we have an image file.
+
+```text
+cat.jpg
+```
+
+A JPEG file does **not** store pixels as a simple matrix.
+
+Instead, it stores **compressed binary data** using the JPEG compression algorithm.
+
+```text
+cat.jpg
+
+↓
+
+Compressed JPEG Data
+```
+
+Python cannot directly understand this compressed data.
+
+---
+
+## Step 2: Pillow Opens the Image
+
+```python
+from PIL import Image
+
+image = Image.open("cat.jpg")
+```
+
+`Image.open()` performs the following tasks:
+
+- Opens the image file.
+- Reads the image header.
+- Decodes the compressed image.
+- Creates a **PIL Image object**.
+
+At this stage, the object already knows important information such as:
+
+```python
+image.size
+image.width
+image.height
+image.mode
+image.format
+```
+
+Example
+
+```python
+image.size
+```
+
+Output
+
+```python
+(500, 374)
+```
+
+---
+
+## Does Pillow Read Pixel Values?
+
+**Yes.**
+
+Pillow must decode the image into pixel values.
+
+Otherwise, operations such as
+
+```python
+plt.imshow(image)
+```
+
+would not be possible.
+
+However, Pillow stores these pixel values in its **own internal image object**, not as a NumPy array.
+
+```text
+JPEG File
+
+↓
+
+Pillow
+
+↓
+
+PIL Image Object
+
+↓
+
+Decoded Pixel Data
+```
+
+---
+
+## Step 3: Convert to NumPy Array
+
+When we execute
+
+```python
+import numpy as np
+
+image_array = np.array(image)
+```
+
+NumPy requests the pixel values from the PIL Image object and creates a **NumPy array**.
+
+```text
+PIL Image Object
+
+↓
+
+np.array()
+
+↓
+
+NumPy Array
+```
+
+The pixel values remain exactly the same.
+
+Only the **data representation** changes.
+
+---
+
+## Why Convert to a NumPy Array?
+
+Pillow is designed for image manipulation.
+
+NumPy is designed for numerical computation.
+
+After conversion, we can perform operations such as:
+
+```python
+image_array.mean()
+```
+
+Average Brightness
+
+```python
+image_array.std()
+```
+
+Image Contrast
+
+```python
+image_array / 255
+```
+
+Pixel Normalization
+
+These mathematical operations are much more efficient with NumPy arrays.
+
+---
+
+## Pillow vs NumPy
+
+| Pillow (PIL) | NumPy |
+|--------------|--------|
+| Opens image files | Stores numerical arrays |
+| Reads image metadata | Performs mathematical operations |
+| Decodes compressed images | Efficient matrix computations |
+| Supports resize, crop, rotate | Supports statistical and numerical operations |
+| Returns a PIL Image object | Returns a NumPy ndarray |
+
+---
+
+## Complete Workflow
+
+```text
+cat.jpg
+
+        │
+        ▼
+
+Image.open()
+
+        │
+        ▼
+
+PIL Image Object
+
+        │
+        ├── size
+        ├── width
+        ├── height
+        ├── mode
+        ├── format
+        └── decoded pixel values
+
+        │
+        ▼
+
+np.array(image)
+
+        │
+        ▼
+
+NumPy Array
+
+        │
+        ├── mean()
+        ├── std()
+        ├── normalization
+        ├── reshaping
+        └── mathematical operations
+
+        │
+        ▼
+
+TensorFlow
+
+        │
+        ▼
+
+Tensor
+
+        │
+        ▼
+
+CNN
+```
+
+---
+
+## Key Takeaways
+
+- `Image.open()` **does not convert an image into a NumPy array**.
+- Pillow opens the image, decodes the compressed data, and creates a **PIL Image object**.
+- The PIL Image object already contains the decoded pixel values and image metadata.
+- `np.array(image)` converts the **PIL Image object** into a **NumPy array**.
+- The pixel values do **not** change during conversion; only the **data representation** changes.
+- Machine learning libraries such as TensorFlow perform mathematical operations on **NumPy arrays** or **tensors**, which is why this conversion is necessary.
 
 # 3. os
 
